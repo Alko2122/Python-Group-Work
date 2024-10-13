@@ -117,9 +117,6 @@ if df is not None and not df.empty:
     else:
         current_df = clean_data(df.copy())
 
-    st.write(f"### Preview of {data_choice}")
-    st.write(current_df[column_selector].head())
-
     if st.button('Visualize Data'):
         create_visualization(current_df, column_selector, plot_type)
 
