@@ -3,11 +3,16 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import requests
+from io import StringIO
 
-# Load the dataset
+# Load the dataset from GitHub
 @st.cache_data
 def load_data():
-    return pd.read_csv("/Users/adrianlim/Downloads/California_House_Price.csv")
+    # Replace this URL with the raw GitHub URL of your CSV file
+    url = "https://github.com/Alko2122/Python-Group-Work/blob/609d9db50c0f9ddf5456d634e49ef9efb8fbe163/1553768847-housing.csv"
+    response = requests.get(url)
+    return pd.read_csv(StringIO(response.text))
 
 df = load_data()
 df_original = df.copy()
