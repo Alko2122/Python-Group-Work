@@ -41,12 +41,12 @@ def clean_data(dataframe):
     # Replace missing values with median for numerical columns
     numeric_columns = cleaned_df.select_dtypes(include=[np.number]).columns
     for col in numeric_columns:
-        cleaned_df[col].fillna(cleaned_df[col].median(), inplace=True)
+        cleaned_df[col] = cleaned_df[col].fillna(cleaned_df[col].median())
     
     # For categorical columns, fill with mode
     categorical_columns = cleaned_df.select_dtypes(include=['object']).columns
     for col in categorical_columns:
-        cleaned_df[col].fillna(cleaned_df[col].mode()[0], inplace=True)
+        cleaned_df[col] = cleaned_df[col].fillna(cleaned_df[col].mode()[0])
     
     return cleaned_df
 
