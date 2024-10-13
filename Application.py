@@ -8,21 +8,25 @@ from io import StringIO
 
 # Load the dataset from GitHub
 def load_data():
-    # Use the raw GitHub URL of your CSV file
-    url = "https://raw.githubusercontent.com/Alko2122/Python-Group-Work/refs/heads/main/1553768847-housing.csv"
+    url = "https://raw.githubusercontent.com/Alko2122/Python-Group-Work/5f5050ee376cf006cc7e57f5151d4fb9f0bc93fa/housing.csv"
+    
+    st.write(f"Attempting to fetch data from: {url}")
     
     try:
         response = requests.get(url)
-        response.raise_for_status()  # Raises an HTTPError for bad responses
+        response.raise_for_status()
     except requests.exceptions.RequestException as e:
         st.error(f"Failed to fetch data: {str(e)}")
         return None
 
     content = response.text
     
+    st.write("First few lines of the fetched content:")
+    st.code(content[:500])
+    
     try:
         df = pd.read_csv(StringIO(content))
-        st.write(f"First few lines: {df.shape}")
+        st.write(f"Successfully loaded DataFrame with shape: {df.shape}")
         return df
     except pd.errors.ParserError as e:
         st.error(f"Error parsing CSV: {str(e)}")
@@ -33,12 +37,10 @@ def load_data():
 
 def clean_data(dataframe):
     cleaned_df = dataframe.copy()
-    # Replace missing values with median for numerical columns
     numeric_columns = cleaned_df.select_dtypes(include=[np.number]).columns
     for col in numeric_columns:
         cleaned_df[col] = cleaned_df[col].fillna(cleaned_df[col].median())
     
-    # For categorical columns, fill with mode
     categorical_columns = cleaned_df.select_dtypes(include=['object']).columns
     for col in categorical_columns:
         cleaned_df[col] = cleaned_df[col].fillna(cleaned_df[col].mode()[0])
@@ -50,7 +52,8 @@ def create_visualization(dataframe, columns, plot_type):
         st.warning("Please select at least one column for visualization.")
         return
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    if plot_type != 'Correlation Matrix':
+        fig, ax = plt.subplots(figsize=(10, 6))
     
     if plot_type == 'Histogram':
         for column in columns:
@@ -58,11 +61,13 @@ def create_visualization(dataframe, columns, plot_type):
         ax.set_title('Histogram of Selected Features')
         ax.set_xlabel('Value')
         ax.set_ylabel('Frequency')
+        st.pyplot(fig)
 
     elif plot_type == 'Box Plot':
         sns.boxplot(data=dataframe[columns], ax=ax)
         ax.set_title('Box Plot of Selected Features')
         ax.set_ylabel('Value')
+        st.pyplot(fig)
 
     elif plot_type == 'Scatter Plot':
         if len(columns) < 2:
@@ -70,19 +75,23 @@ def create_visualization(dataframe, columns, plot_type):
             return
         sns.scatterplot(data=dataframe, x=columns[0], y=columns[1], ax=ax)
         ax.set_title(f'Scatter Plot: {columns[0]} vs {columns[1]}')
+        st.pyplot(fig)
 
     elif plot_type == 'Violin Plot':
         sns.violinplot(data=dataframe[columns], ax=ax)
         ax.set_title('Violin Plot of Selected Features')
         ax.set_ylabel('Value')
+        st.pyplot(fig)
 
-    st.pyplot(fig)
-
-    if len(columns) > 1:
-        corr_fig, corr_ax = plt.subplots(figsize=(10, 8))
-        sns.heatmap(dataframe[columns].corr(), annot=True, cmap='coolwarm', ax=corr_ax)
-        corr_ax.set_title('Correlation Heatmap of Selected Features')
-        st.pyplot(corr_fig)
+    elif plot_type == 'Correlation Matrix':
+        if len(columns) < 2:
+            st.warning("Please select at least two columns for a correlation matrix.")
+            return
+        corr_matrix = dataframe[columns].corr()
+        fig, ax = plt.subplots(figsize=(10, 8))
+        sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', ax=ax)
+        ax.set_title('Correlation Matrix of Selected Features')
+        st.pyplot(fig)
 
 # Streamlit app
 st.title('California House Price Data Analysis')
@@ -108,7 +117,7 @@ if df is not None and not df.empty:
 
     plot_type = st.sidebar.selectbox(
         'Select Plot Type',
-        options=['Histogram', 'Box Plot', 'Scatter Plot', 'Violin Plot']
+        options=['Histogram', 'Box Plot', 'Scatter Plot', 'Violin Plot', 'Correlation Matrix']
     )
 
     # Main content
@@ -116,6 +125,9 @@ if df is not None and not df.empty:
         current_df = df_original
     else:
         current_df = clean_data(df.copy())
+
+    st.write(f"### Preview of {data_choice}")
+    st.write(current_df[column_selector].head())
 
     if st.button('Visualize Data'):
         create_visualization(current_df, column_selector, plot_type)
