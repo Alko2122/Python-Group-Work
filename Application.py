@@ -11,8 +11,6 @@ def load_data():
     # Use the raw GitHub URL of your CSV file
     url = "https://raw.githubusercontent.com/Alko2122/Python-Group-Work/refs/heads/main/1553768847-housing.csv"
     
-    st.write(f"Attempting to fetch data from: {url}")
-    
     try:
         response = requests.get(url)
         response.raise_for_status()  # Raises an HTTPError for bad responses
