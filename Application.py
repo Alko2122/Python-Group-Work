@@ -8,7 +8,7 @@ from io import StringIO
 
 # Load the dataset from GitHub
 def load_data():
-    # Replace this URL with the raw GitHub URL of your CSV file
+    # Use the raw GitHub URL of your CSV file
     url = "https://raw.githubusercontent.com/Alko2122/Python-Group-Work/refs/heads/main/1553768847-housing.csv"
     
     st.write(f"Attempting to fetch data from: {url}")
@@ -36,28 +36,18 @@ def load_data():
         st.error(f"Unexpected error while parsing CSV: {str(e)}")
         return None
 
-# Streamlit app
-st.title('California House Price Data Analysis')
-
-# Load data
-df = load_data()
-
-if df is not None and not df.empty:
-    st.write("Data loaded successfully. Here's a preview:")
-    st.write(df.head())
-
-    # ... rest of your app logic ...
-
-else:
-    st.error("Failed to load data or the dataset is empty. Please check the error messages above and ensure the GitHub URL is correct.")
-    st.stop()
-
-# The rest of your app code (data processing, visualization, etc.) goes here,
-# but only if df is not None and not empty
-
 def clean_data(dataframe):
     cleaned_df = dataframe.copy()
-    cleaned_df['total_bedrooms'] = cleaned_df['total_bedrooms'].fillna(cleaned_df['total_bedrooms'].median())
+    # Replace missing values with median for numerical columns
+    numeric_columns = cleaned_df.select_dtypes(include=[np.number]).columns
+    for col in numeric_columns:
+        cleaned_df[col].fillna(cleaned_df[col].median(), inplace=True)
+    
+    # For categorical columns, fill with mode
+    categorical_columns = cleaned_df.select_dtypes(include=['object']).columns
+    for col in categorical_columns:
+        cleaned_df[col].fillna(cleaned_df[col].mode()[0], inplace=True)
+    
     return cleaned_df
 
 def create_visualization(dataframe, columns, plot_type):
@@ -65,13 +55,12 @@ def create_visualization(dataframe, columns, plot_type):
         st.warning("Please select at least one column for visualization.")
         return
 
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(10, 6))
     
     if plot_type == 'Histogram':
         for column in columns:
-            sns.histplot(data=dataframe, x=column, kde=True, label=column, ax=ax)
-        ax.legend()
-        ax.set_title('Distribution of Selected Features')
+            sns.histplot(data=dataframe, x=column, kde=True, ax=ax)
+        ax.set_title('Histogram of Selected Features')
         ax.set_xlabel('Value')
         ax.set_ylabel('Frequency')
 
@@ -95,44 +84,56 @@ def create_visualization(dataframe, columns, plot_type):
     st.pyplot(fig)
 
     if len(columns) > 1:
-        fig, ax = plt.subplots(figsize=(10, 8))
-        sns.heatmap(dataframe[columns].corr(), annot=True, cmap='coolwarm', ax=ax)
-        ax.set_title('Correlation Heatmap of Selected Features')
-        st.pyplot(fig)
+        corr_fig, corr_ax = plt.subplots(figsize=(10, 8))
+        sns.heatmap(dataframe[columns].corr(), annot=True, cmap='coolwarm', ax=corr_ax)
+        corr_ax.set_title('Correlation Heatmap of Selected Features')
+        st.pyplot(corr_fig)
 
 # Streamlit app
 st.title('California House Price Data Analysis')
 
-# Sidebar for user inputs
-st.sidebar.header('User Input Features')
+# Load data
+df = load_data()
 
-data_choice = st.sidebar.radio('Choose Data', ['Original Data', 'Cleaned Data'])
+if df is not None and not df.empty:
+    df_original = df.copy()
+    st.write("Data loaded successfully. Here's a preview:")
+    st.write(df.head())
 
-column_selector = st.sidebar.multiselect(
-    'Select Columns for Visualization',
-    options=df.columns.tolist(),
-    default=[df.columns[0]]
-)
+    # Sidebar for user inputs
+    st.sidebar.header('User Input Features')
 
-plot_type = st.sidebar.selectbox(
-    'Select Plot Type',
-    options=['Histogram', 'Box Plot', 'Scatter Plot', 'Violin Plot']
-)
+    data_choice = st.sidebar.radio('Choose Data', ['Original Data', 'Cleaned Data'])
 
-# Main content
-if data_choice == 'Original Data':
-    current_df = df_original
+    column_selector = st.sidebar.multiselect(
+        'Select Columns for Visualization',
+        options=df.columns.tolist(),
+        default=[df.columns[0]]
+    )
+
+    plot_type = st.sidebar.selectbox(
+        'Select Plot Type',
+        options=['Histogram', 'Box Plot', 'Scatter Plot', 'Violin Plot']
+    )
+
+    # Main content
+    if data_choice == 'Original Data':
+        current_df = df_original
+    else:
+        current_df = clean_data(df.copy())
+
+    st.write(f"### Preview of {data_choice}")
+    st.write(current_df[column_selector].head())
+
+    if st.button('Visualize Data'):
+        create_visualization(current_df, column_selector, plot_type)
+
+    # Display dataset info
+    st.sidebar.markdown("---")
+    st.sidebar.write("### Dataset Info")
+    st.sidebar.write(f"Total Records: {len(df)}")
+    st.sidebar.write(f"Total Features: {len(df.columns)}")
+
 else:
-    current_df = clean_data(df.copy())
-
-st.write(f"### Preview of {data_choice}")
-st.write(current_df[column_selector].head())
-
-if st.button('Visualize Data'):
-    create_visualization(current_df, column_selector, plot_type)
-
-# Display dataset info
-st.sidebar.markdown("---")
-st.sidebar.write("### Dataset Info")
-st.sidebar.write(f"Total Records: {len(df)}")
-st.sidebar.write(f"Total Features: {len(df.columns)}")
+    st.error("Failed to load data or the dataset is empty. Please check the error messages above and ensure the GitHub URL is correct.")
+    st.stop()
