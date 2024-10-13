@@ -21,9 +21,6 @@ def load_data():
 
     content = response.text
     
-    st.write("First few lines of the fetched content:")
-    st.code(content[:500])
-    
     try:
         df = pd.read_csv(StringIO(content))
         st.write(f"Successfully loaded DataFrame with shape: {df.shape}")
