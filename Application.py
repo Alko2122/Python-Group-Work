@@ -96,7 +96,7 @@ df = load_data()
 
 if df is not None and not df.empty:
     df_original = df.copy()
-    st.write("Data loaded successfully. Here's a preview:")
+    st.write("Dataframe info:")
     st.write(df.head())
 
     # Sidebar for user inputs
