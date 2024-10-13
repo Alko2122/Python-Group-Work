@@ -10,7 +10,7 @@ from io import StringIO
 @st.cache_data
 def load_data():
     # Replace this URL with the raw GitHub URL of your CSV file
-    url = "https://github.com/Alko2122/Python-Group-Work/blob/609d9db50c0f9ddf5456d634e49ef9efb8fbe163/1553768847-housing.csv"
+    url = r"https://github.com/Alko2122/Python-Group-Work/blob/609d9db50c0f9ddf5456d634e49ef9efb8fbe163/1553768847-housing.csv"
     response = requests.get(url)
     return pd.read_csv(StringIO(response.text))
 
