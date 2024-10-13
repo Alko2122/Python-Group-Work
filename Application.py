@@ -9,7 +9,7 @@ from io import StringIO
 # Load the dataset from GitHub
 def load_data():
     # Replace this URL with the raw GitHub URL of your CSV file
-    url = "https://raw.githubusercontent.com/Alko2122/Python-Group-Work/609d9db5a4df6462d95bff71f1ba6b5c9f431f1a/California_House_Price.csv"
+    url = "https://github.com/Alko2122/Python-Group-Work/blob/5f5050ee376cf006cc7e57f5151d4fb9f0bc93fa/1553768847-housing.csv"
     
     st.write(f"Attempting to fetch data from: {url}")
     
