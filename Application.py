@@ -10,12 +10,39 @@ from io import StringIO
 @st.cache_data
 def load_data():
     # Replace this URL with the raw GitHub URL of your CSV file
-    url = r"https://github.com/Alko2122/Python-Group-Work/blob/609d9db50c0f9ddf5456d634e49ef9efb8fbe163/1553768847-housing.csv"
+    url = "https://raw.githubusercontent.com/Alko2122/Python-Group-Work/609d9db5a4df6462d95bff71f1ba6b5c9f431f1a/California_House_Price.csv"
     response = requests.get(url)
-    return pd.read_csv(StringIO(response.text))
+    
+    if response.status_code != 200:
+        st.error(f"Failed to fetch data: HTTP {response.status_code}")
+        return None
 
+    content = response.text
+    
+    # Display the first few lines of the content for debugging
+    st.text("First few lines of the fetched content:")
+    st.code(content[:500])
+    
+    try:
+        return pd.read_csv(StringIO(content))
+    except pd.errors.ParserError as e:
+        st.error(f"Error parsing CSV: {str(e)}")
+        return None
+
+# Rest of your code remains the same
+# ...
+
+# Main content
 df = load_data()
-df_original = df.copy()
+
+if df is not None:
+    df_original = df.copy()
+    
+    # ... (rest of your app logic)
+else:
+    st.error("Failed to load data. Please check the error messages above.")
+
+# ... (rest of your app code)
 
 def clean_data(dataframe):
     cleaned_df = dataframe.copy()
