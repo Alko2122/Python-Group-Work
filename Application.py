@@ -10,8 +10,6 @@ from io import StringIO
 def load_data():
     url = "https://raw.githubusercontent.com/Alko2122/Python-Group-Work/refs/heads/main/1553768847-housing.csv"
     
-    st.write(f"Attempting to fetch data from: {url}")
-    
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -23,7 +21,7 @@ def load_data():
     
     try:
         df = pd.read_csv(StringIO(content))
-        st.write(f"Successfully loaded DataFrame with shape: {df.shape}")
+    
         return df
     except pd.errors.ParserError as e:
         st.error(f"Error parsing CSV: {str(e)}")
