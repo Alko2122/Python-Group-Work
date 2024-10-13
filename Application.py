@@ -7,42 +7,53 @@ import requests
 from io import StringIO
 
 # Load the dataset from GitHub
-@st.cache_data
 def load_data():
     # Replace this URL with the raw GitHub URL of your CSV file
-    url = "https://github.com/Alko2122/Python-Group-Work/blob/d3fa13163057c337c1a5103532fb9937797b3b87/1553768847-housing.csv"
-    response = requests.get(url)
+    url = "https://raw.githubusercontent.com/Alko2122/Python-Group-Work/609d9db5a4df6462d95bff71f1ba6b5c9f431f1a/California_House_Price.csv"
     
-    if response.status_code != 200:
-        st.error(f"Failed to fetch data: HTTP {response.status_code}")
+    st.write(f"Attempting to fetch data from: {url}")
+    
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch data: {str(e)}")
         return None
 
     content = response.text
     
-    # Display the first few lines of the content for debugging
-    st.text("First few lines of the fetched content:")
+    st.write("First few lines of the fetched content:")
     st.code(content[:500])
     
     try:
-        return pd.read_csv(StringIO(content))
+        df = pd.read_csv(StringIO(content))
+        st.write(f"Successfully loaded DataFrame with shape: {df.shape}")
+        return df
     except pd.errors.ParserError as e:
         st.error(f"Error parsing CSV: {str(e)}")
         return None
+    except Exception as e:
+        st.error(f"Unexpected error while parsing CSV: {str(e)}")
+        return None
 
-# Rest of your code remains the same
-# ...
+# Streamlit app
+st.title('California House Price Data Analysis')
 
-# Main content
+# Load data
 df = load_data()
 
-if df is not None:
-    df_original = df.copy()
-    
-    # ... (rest of your app logic)
-else:
-    st.error("Failed to load data. Please check the error messages above.")
+if df is not None and not df.empty:
+    st.write("Data loaded successfully. Here's a preview:")
+    st.write(df.head())
 
-# ... (rest of your app code)
+    # ... rest of your app logic ...
+
+else:
+    st.error("Failed to load data or the dataset is empty. Please check the error messages above and ensure the GitHub URL is correct.")
+    st.stop()
+
+# The rest of your app code (data processing, visualization, etc.) goes here,
+# but only if df is not None and not empty
 
 def clean_data(dataframe):
     cleaned_df = dataframe.copy()
